@@ -11,6 +11,44 @@
 using namespace std;
 using namespace fasttext;
 
+// membuf and memstream from:
+// https://tuttlem.github.io/2014/08/18/getting-istream-to-work-off-a-byte-array.html
+// https://stackoverflow.com/questions/41141175/how-to-implement-seekg-seekpos-on-an-in-memory-buffer
+
+class membuf : public std::basic_streambuf<char> {
+public:
+  membuf(const std::uint8_t *begin, std::size_t size) {
+    char *ptr = reinterpret_cast<char *>(const_cast<std::uint8_t *>(begin));
+    setg(ptr, ptr, ptr + size);
+  }
+
+  pos_type seekpos(pos_type sp, std::ios_base::openmode which) override {
+    return seekoff(sp - pos_type(off_type(0)), std::ios_base::beg, which);
+  }
+
+  pos_type seekoff(off_type off, std::ios_base::seekdir dir,
+                   std::ios_base::openmode which = std::ios_base::in) override {
+    if (dir == std::ios_base::cur)
+      gbump(off);
+    else if (dir == std::ios_base::end)
+      setg(eback(), egptr() + off, egptr());
+    else if (dir == std::ios_base::beg)
+      setg(eback(), eback() + off, egptr());
+    return gptr() - eback();
+  }
+};
+
+class memstream : public std::istream {
+public:
+  memstream(const uint8_t *begin, size_t size)
+      : std::istream(&_buffer), _buffer(begin, size) {
+    this->rdbuf(&_buffer);
+  }
+
+private:
+  membuf _buffer;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -341,6 +379,15 @@ void cft_fasttext_free(fasttext_t* handle) {
 void cft_fasttext_load_model(fasttext_t* handle, const char* filename, char** errptr) {
     try {
         ((FastText*)handle)->loadModel(filename);
+    } catch (const std::invalid_argument& e) {
+        save_error(errptr, e);
+    }
+}
+
+void cft_fasttext_load_model_bytes(fasttext_t* handle, const unsigned char* bytes, size_t nbytes, char** errptr) {
+    try {
+        memstream buf(bytes, nbytes);
+        ((FastText*)handle)->loadModel(buf);
     } catch (const std::invalid_argument& e) {
         save_error(errptr, e);
     }
