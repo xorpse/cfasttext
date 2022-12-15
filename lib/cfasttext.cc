@@ -11,6 +11,9 @@
 using namespace std;
 using namespace fasttext;
 
+constexpr int32_t FASTTEXT_FILEFORMAT_MAGIC_INT32 = 793712314;
+constexpr int32_t FASTTEXT_VERSION = 12;
+
 // membuf and memstream from:
 // https://tuttlem.github.io/2014/08/18/getting-istream-to-work-off-a-byte-array.html
 // https://stackoverflow.com/questions/41141175/how-to-implement-seekg-seekpos-on-an-in-memory-buffer
@@ -387,8 +390,21 @@ void cft_fasttext_load_model(fasttext_t* handle, const char* filename, char** er
 void cft_fasttext_load_model_bytes(fasttext_t* handle, const unsigned char* bytes, size_t nbytes, char** errptr) {
     try {
         memstream buf(bytes, nbytes);
+
+        int32_t magic = 0, version = 0;
+
+        buf.read((char*)&(magic), sizeof(int32_t));
+        if (magic != FASTTEXT_FILEFORMAT_MAGIC_INT32) {
+          throw std::invalid_argument("invalid model");
+        }
+
+        buf.read((char*)&(version), sizeof(int32_t));
+        if (version > FASTTEXT_VERSION) {
+          throw std::invalid_argument("invalid model: unsupported version");
+        }
+
         ((FastText*)handle)->loadModel(buf);
-    } catch (const std::invalid_argument& e) {
+    } catch (const std::exception& e) {
         save_error(errptr, e);
     }
 }
