@@ -137,6 +137,7 @@ CFASTTEXT_API void cft_args_print_autotune_help(fasttext_args_t* handle);
 CFASTTEXT_API fasttext_t* cft_fasttext_new(void);
 CFASTTEXT_API void cft_fasttext_free(fasttext_t* handle);
 CFASTTEXT_API void cft_fasttext_load_model(fasttext_t* handle, const char* filename, char** errptr);
+CFASTTEXT_API void cft_fasttext_load_model_bytes(fasttext_t* handle, const unsigned char* bytes, size_t nbytes, char** errptr);
 CFASTTEXT_API void cft_fasttext_save_model(fasttext_t* handle, const char* filename, char** errptr);
 CFASTTEXT_API void cft_fasttext_save_output(fasttext_t* handle, const char* filename, char** errptr);
 CFASTTEXT_API void cft_fasttext_save_vectors(fasttext_t* handle, const char* filename, char** errptr);
