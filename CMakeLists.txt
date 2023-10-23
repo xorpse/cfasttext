@@ -30,6 +30,7 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(
+    ${PROJECT_SOURCE_DIR}/fixes
     ${PROJECT_SOURCE_DIR}/fasttext/src
     ${PROJECT_SOURCE_DIR}/include)
 
@@ -53,7 +54,8 @@ set(HEADER_FILES
     ${PROJECT_SOURCE_DIR}/fasttext/src/vector.h)
 
 set(SOURCE_FILES
-    ${PROJECT_SOURCE_DIR}/fasttext/src/args.cc
+  # ${PROJECT_SOURCE_DIR}/fasttext/src/args.cc
+    ${PROJECT_SOURCE_DIR}/fixes/args.cc
     ${PROJECT_SOURCE_DIR}/fasttext/src/autotune.cc
     ${PROJECT_SOURCE_DIR}/fasttext/src/densematrix.cc
     ${PROJECT_SOURCE_DIR}/fasttext/src/dictionary.cc
